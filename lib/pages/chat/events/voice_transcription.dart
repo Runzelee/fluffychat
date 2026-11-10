@@ -3,6 +3,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:fluffychat/config/themes.dart';
 import 'package:fluffychat/l10n/l10n.dart';
 import 'package:fluffychat/utils/platform_infos.dart';
 import 'package:flutter/material.dart';
@@ -203,6 +204,8 @@ class _VoiceTranscriptPanelState extends State<VoiceTranscriptPanel> {
     final l10n = L10n.of(context);
     final transcript = _transcript;
     final busy = _service.isRunning(widget.transcriptKey);
+    if (transcript == null && !busy) return widget.builder(null, null);
+
     final toggle = transcript == null
         ? null
         : SizedBox(
@@ -216,54 +219,62 @@ class _VoiceTranscriptPanelState extends State<VoiceTranscriptPanel> {
                   ? l10n.voiceTranscriptCollapse
                   : l10n.voiceTranscriptExpand,
               onPressed: _saving || busy ? null : () => _toggle(transcript),
-              icon: Icon(
-                transcript.expanded ? Icons.expand_less : Icons.expand_more,
+              icon: AnimatedRotation(
+                turns: transcript.expanded ? 0.5 : 0,
+                duration: FluffyThemes.animationDuration,
+                curve: FluffyThemes.animationCurve,
+                child: const Icon(Icons.expand_more),
               ),
             ),
           );
-    if (!(transcript?.expanded ?? busy)) {
-      return widget.builder(toggle, null);
-    }
-
     return widget.builder(
       toggle,
-      Padding(
-        padding: const EdgeInsets.only(top: 8),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Divider(height: 1, color: widget.color.withValues(alpha: 0.25)),
-            if (transcript == null)
-              Padding(
-                padding: const EdgeInsets.only(top: 12),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SizedBox.square(
-                      dimension: 14,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: widget.color,
+      AnimatedCrossFade(
+        duration: FluffyThemes.animationDuration,
+        sizeCurve: FluffyThemes.animationCurve,
+        alignment: Alignment.topLeft,
+        crossFadeState: (transcript?.expanded ?? busy)
+            ? CrossFadeState.showSecond
+            : CrossFadeState.showFirst,
+        firstChild: const SizedBox.shrink(),
+        secondChild: Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Divider(height: 1, color: widget.color.withValues(alpha: 0.25)),
+              if (transcript == null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox.square(
+                        dimension: 14,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: widget.color,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      l10n.voiceTranscribing,
-                      style: TextStyle(color: widget.color),
-                    ),
-                  ],
+                      const SizedBox(width: 8),
+                      Text(
+                        l10n.voiceTranscribing,
+                        style: TextStyle(color: widget.color),
+                      ),
+                    ],
+                  ),
+                )
+              else
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: SelectableText(
+                    transcript.text,
+                    style: TextStyle(color: widget.color),
+                  ),
                 ),
-              )
-            else
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: SelectableText(
-                  transcript.text,
-                  style: TextStyle(color: widget.color),
-                ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
     );

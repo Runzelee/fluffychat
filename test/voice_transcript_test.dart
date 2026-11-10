@@ -39,28 +39,32 @@ void main() {
     );
     await tester.pumpWidget(page(otherKey));
     await tester.pumpAndSettle();
-    expect(find.byIcon(Icons.expand_less), findsNothing);
     expect(find.byIcon(Icons.expand_more), findsNothing);
 
     await tester.pumpWidget(page(transcriptKey));
     await tester.pumpAndSettle();
     expect(find.text(text), findsOneWidget);
+    final panel = find.byType(AnimatedCrossFade);
+    final expandedHeight = tester.getSize(panel).height;
+    expect(expandedHeight, greaterThan(0));
 
     expect(find.text('Hide transcript'), findsNothing);
     await tester.tap(find.byTooltip('Hide transcript'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 125));
+    expect(tester.getSize(panel).height, inExclusiveRange(0, expandedHeight));
     await tester.pumpAndSettle();
-    expect(find.text(text), findsNothing);
-    expect(find.byType(Divider), findsNothing);
+    expect(tester.getSize(panel).height, 0);
     expect(await service.read(transcriptKey), (text: text, expanded: false));
 
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pumpWidget(page(transcriptKey));
     await tester.pumpAndSettle();
-    expect(find.text(text), findsNothing);
+    expect(tester.getSize(panel).height, 0);
 
     await tester.tap(find.byTooltip('Show transcript'));
     await tester.pumpAndSettle();
-    expect(find.text(text), findsOneWidget);
+    expect(tester.getSize(panel).height, expandedHeight);
     expect(await service.read(transcriptKey), (text: text, expanded: true));
   });
 }
