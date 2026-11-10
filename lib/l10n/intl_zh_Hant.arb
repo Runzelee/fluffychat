@@ -2418,5 +2418,12 @@
                 "type": "String"
             }
         }
-    }
+    },
+    "transcribeVoiceMessage": "轉文字",
+    "voiceTranscribing": "正在本機轉寫…",
+    "voiceTranscriptExpand": "展開轉寫",
+    "voiceTranscriptCollapse": "收起轉寫",
+    "voiceTranscriptFailed": "這則語音轉寫失敗，請重試。",
+    "voiceTranscriptTooLong": "語音轉寫支援最長 2 分鐘、最大 16 MiB。",
+    "voiceTranscriptEmpty": "沒有辨識到語音。"
 }

@@ -2863,5 +2863,12 @@
                 "type": "String"
             }
         }
-    }
+    },
+    "transcribeVoiceMessage": "转文字",
+    "voiceTranscribing": "正在本机转写…",
+    "voiceTranscriptExpand": "展开转写",
+    "voiceTranscriptCollapse": "收起转写",
+    "voiceTranscriptFailed": "这条语音转写失败，请重试。",
+    "voiceTranscriptTooLong": "语音转写支持最长 2 分钟、最大 16 MiB。",
+    "voiceTranscriptEmpty": "没有识别到语音。"
 }

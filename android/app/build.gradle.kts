@@ -12,6 +12,8 @@ if (file("google-services.json").exists()) {
 }
 
 dependencies {
+    implementation(files(rootProject.file("../.voice-engine/sherpa-onnx.aar")))
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:2.2.20")
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4") // For flutter_local_notifications // Workaround for: https://github.com/MaikuB/flutter_local_notifications/issues/2286
     implementation("androidx.core:core-ktx:1.17.0") // For Android Auto
 }
@@ -66,15 +68,18 @@ android {
     }
 
     defaultConfig {
-        applicationId = "chat.fluffy.fluffychat"
+        applicationId = "chat.fluffy.fluffychat.voice"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
-        ndk { // Workaround for https://github.com/flutter/flutter/issues/162153#issuecomment-2612443642
-            abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86_64", "x86")
+        ndk {
+            abiFilters += "arm64-v8a"
         }
     }
+
+    sourceSets.getByName("main").assets.srcDir(rootProject.file("../.voice-engine/assets"))
+    androidResources.noCompress += "onnx"
 
     buildTypes {
         release {

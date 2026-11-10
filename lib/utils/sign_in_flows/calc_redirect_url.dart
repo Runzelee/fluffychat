@@ -11,10 +11,13 @@ import 'package:universal_html/html.dart' as html;
 (Uri redirectUrl, String urlScheme) calcRedirectUrl({
   bool withAuthHtmlPath = false,
 }) {
+  final ssoScheme = PlatformInfos.isAndroid
+      ? AppConfig.androidVoiceSsoUrlScheme
+      : AppConfig.appSsoUrlScheme;
   var redirectUrl = kIsWeb
       ? Uri.parse(html.window.location.href.split('#').first.split('?').first)
       : (PlatformInfos.isMobile || PlatformInfos.isMacOS)
-      ? Uri.parse('${AppConfig.appSsoUrlScheme.toLowerCase()}:/login')
+      ? Uri.parse('${ssoScheme.toLowerCase()}:/login')
       : Uri.parse('http://localhost:3001/login');
 
   if (kIsWeb && withAuthHtmlPath) {

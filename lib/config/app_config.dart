@@ -32,12 +32,13 @@ abstract class AppConfig {
   static const String appId = 'im.fluffychat.app';
   static const String appOpenUrlScheme = 'im.fluffychat';
   static const String appSsoUrlScheme = 'im.fluffychat.auth';
+  static const String androidVoiceSsoUrlScheme = 'im.fluffychat.voice.auth';
   // Identifies the notification activation callback on Windows. Never change!
   static const String windowsNotificationGuid =
       '4894dfda-c70a-4ebc-b139-acae55f3988d';
 
   static const String sourceCodeUrl =
-      'https://github.com/krille-chan/fluffychat';
+      'https://github.com/Runzelee/fluffychat/tree/voice-transcription';
   static const String supportUrl =
       'https://github.com/krille-chan/fluffychat/issues';
   static const String changelogUrl = 'https://fluffychat.im/changelog/';

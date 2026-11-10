@@ -1,0 +1,20 @@
+Bundled third-party software and model
+
+sherpa-onnx 1.12.20, Copyright (c) 2023-2025 k2-fsa and contributors.
+Apache License, Version 2.0.
+https://github.com/k2-fsa/sherpa-onnx/tree/v1.12.20
+
+ONNX Runtime 1.17.1, Copyright (c) Microsoft Corporation.
+MIT License. See ONNX-Runtime-MIT.txt and ONNX-Runtime-ThirdPartyNotices.txt.
+https://github.com/microsoft/onnxruntime/tree/v1.17.1
+
+Kotlin Standard Library 2.1.21, Copyright 2010-2025 JetBrains s.r.o. and contributors.
+Apache License, Version 2.0.
+https://github.com/JetBrains/kotlin/tree/v2.1.21
+
+SenseVoice Small, Copyright (c) 2025 FunASR. MIT License.
+https://github.com/FunAudioLLM/SenseVoice
+WSYue-ASR SenseVoice fine-tune, ASLP-lab. Apache License, Version 2.0.
+https://huggingface.co/ASLP-lab/WSYue-ASR
+ONNX INT8 export, k2-fsa / csukuangfj.
+https://huggingface.co/csukuangfj/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-int8-2025-09-09

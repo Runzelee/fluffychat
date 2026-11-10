@@ -1,1 +1,2 @@
 -keep class com.hiennv.flutter_callkit_incoming.** { *; }
+-keep class com.k2fsa.sherpa.onnx.** { *; }

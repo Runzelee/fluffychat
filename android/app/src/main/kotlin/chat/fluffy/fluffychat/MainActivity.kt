@@ -19,7 +19,10 @@ class MainActivity : FlutterFragmentActivity() {
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
-        // do nothing, because the engine was been configured in provideEngine
+        VoiceTranscriptionChannel.register(
+            flutterEngine.dartExecutor.binaryMessenger,
+            applicationContext.assets,
+        )
     }
 
     // Prevent Flutter engine gets destroyed on back button close.

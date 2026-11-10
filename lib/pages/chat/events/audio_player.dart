@@ -24,6 +24,7 @@ import 'package:path_provider/path_provider.dart';
 import '../../../utils/matrix_sdk_extensions/event_extension.dart';
 import '../../../widgets/fluffy_chat_app.dart';
 import '../../../widgets/matrix.dart';
+import 'voice_transcription.dart';
 
 class AudioPlayerWidget extends StatefulWidget {
   final Color color;
@@ -307,6 +308,9 @@ class AudioPlayerState extends State<AudioPlayerWidget> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final waveform = _waveform;
+    final transcriptKey = VoiceTranscription.supports(widget.event)
+        ? VoiceTranscription.keyFor(widget.event)
+        : null;
 
     return ValueListenableBuilder(
       valueListenable: matrix.voiceMessageEventId,
@@ -361,8 +365,9 @@ class AudioPlayerState extends State<AudioPlayerWidget> {
                                 )
                               : InkWell(
                                   borderRadius: BorderRadius.circular(64),
-                                  onLongPress: () =>
-                                      widget.event.saveFile(context),
+                                  onLongPress: transcriptKey == null
+                                      ? () => widget.event.saveFile(context)
+                                      : null,
                                   onTap: _onButtonTap,
                                   child: Material(
                                     color: widget.color.withAlpha(64),
@@ -500,6 +505,12 @@ class AudioPlayerState extends State<AudioPlayerWidget> {
                       ],
                     ),
                   ),
+                  if (transcriptKey != null)
+                    VoiceTranscriptPanel(
+                      key: ValueKey(transcriptKey),
+                      transcriptKey: transcriptKey,
+                      color: widget.color,
+                    ),
                   if (fileDescription != null) ...[
                     const SizedBox(height: 8),
                     Padding(

@@ -2852,5 +2852,12 @@
                 "type": "String"
             }
         }
-    }
+    },
+    "transcribeVoiceMessage": "Transcribe",
+    "voiceTranscribing": "Transcribing on this device…",
+    "voiceTranscriptExpand": "Show transcript",
+    "voiceTranscriptCollapse": "Hide transcript",
+    "voiceTranscriptFailed": "Could not transcribe this voice message. Try again.",
+    "voiceTranscriptTooLong": "Voice transcription supports up to 2 minutes and 16 MiB.",
+    "voiceTranscriptEmpty": "No speech was recognized."
 }

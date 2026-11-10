@@ -3,6 +3,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:collection/collection.dart';
@@ -13,6 +14,7 @@ import 'package:fluffychat/l10n/l10n.dart';
 import 'package:fluffychat/utils/adaptive_bottom_sheet.dart';
 import 'package:fluffychat/utils/date_time_extension.dart';
 import 'package:fluffychat/utils/file_description.dart';
+import 'package:fluffychat/utils/matrix_sdk_extensions/event_extension.dart';
 import 'package:fluffychat/utils/matrix_sdk_extensions/matrix_locals.dart';
 import 'package:fluffychat/utils/string_color.dart';
 import 'package:fluffychat/widgets/avatar.dart';
@@ -29,6 +31,7 @@ import 'message_reactions.dart';
 import 'reply_content.dart';
 import 'state_message.dart';
 import 'swipe_to_reply.dart';
+import 'voice_transcription.dart';
 
 class Message extends StatelessWidget {
   final Event event;
@@ -104,6 +107,7 @@ class Message extends StatelessWidget {
     }
 
     final client = Matrix.of(context).client;
+    final voiceMenu = !longPressSelect && VoiceTranscription.supports(event);
     final ownMessage = event.senderId == client.userID;
     final alignment = ownMessage ? Alignment.topRight : Alignment.topLeft;
 
@@ -422,7 +426,24 @@ class Message extends StatelessWidget {
                                         }
                                       }
                                     : null,
-                                onLongPress: longPressSelect
+                                onLongPressStart: voiceMenu
+                                    ? (details) {
+                                        HapticFeedback.heavyImpact();
+                                        unawaited(
+                                          VoiceTranscription.instance
+                                              .showMenuFor(
+                                                context,
+                                                event,
+                                                details.globalPosition,
+                                                select: () => onSelect(event),
+                                                download: () => unawaited(
+                                                  event.saveFile(context),
+                                                ),
+                                              ),
+                                        );
+                                      }
+                                    : null,
+                                onLongPress: longPressSelect || voiceMenu
                                     ? null
                                     : () {
                                         HapticFeedback.heavyImpact();

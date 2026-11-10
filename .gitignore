@@ -324,3 +324,6 @@ macos/FluffyChat.app/Contents/Resources/wakelock_plus_wakelock_plus.bundle/Conte
 macos/FluffyChat.app/Contents/_CodeSignature/CodeResources
 macos/FluffyChat.app.dSYM.zip
 macos/FluffyChat.pkg
+
+# Local voice transcription runtime and model
+/.voice-engine/
