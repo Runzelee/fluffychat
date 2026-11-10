@@ -1,9 +1,9 @@
 # FluffyChat Voice
 
-An Android ARM64 fork of FluffyChat 2.11.5. Long-press a voice bubble and choose
-**Transcribe**. The result appears below the waveform. Tap **Hide transcript**
-or **Show transcript** to change its visibility, and select the text to copy it.
-Long-press still offers **Download file** and **Select**.
+An Android ARM64 fork of FluffyChat 2.11.5. Long-press a voice bubble to select
+it, then tap the **Transcribe** icon to the left of 👍 in the reaction row.
+The result appears below the waveform. Tap **Hide transcript** or
+**Show transcript** to change its visibility, and select the text to copy it.
 
 The Matrix client fetches and decrypts the audio. Android decodes it locally,
 and the bundled SenseVoice INT8 model converts it to text. Transcripts and

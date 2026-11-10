@@ -3,7 +3,6 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:collection/collection.dart';
@@ -14,7 +13,6 @@ import 'package:fluffychat/l10n/l10n.dart';
 import 'package:fluffychat/utils/adaptive_bottom_sheet.dart';
 import 'package:fluffychat/utils/date_time_extension.dart';
 import 'package:fluffychat/utils/file_description.dart';
-import 'package:fluffychat/utils/matrix_sdk_extensions/event_extension.dart';
 import 'package:fluffychat/utils/matrix_sdk_extensions/matrix_locals.dart';
 import 'package:fluffychat/utils/string_color.dart';
 import 'package:fluffychat/widgets/avatar.dart';
@@ -107,7 +105,6 @@ class Message extends StatelessWidget {
     }
 
     final client = Matrix.of(context).client;
-    final voiceMenu = !longPressSelect && VoiceTranscription.supports(event);
     final ownMessage = event.senderId == client.userID;
     final alignment = ownMessage ? Alignment.topRight : Alignment.topLeft;
 
@@ -426,24 +423,7 @@ class Message extends StatelessWidget {
                                         }
                                       }
                                     : null,
-                                onLongPressStart: voiceMenu
-                                    ? (details) {
-                                        HapticFeedback.heavyImpact();
-                                        unawaited(
-                                          VoiceTranscription.instance
-                                              .showMenuFor(
-                                                context,
-                                                event,
-                                                details.globalPosition,
-                                                select: () => onSelect(event),
-                                                download: () => unawaited(
-                                                  event.saveFile(context),
-                                                ),
-                                              ),
-                                        );
-                                      }
-                                    : null,
-                                onLongPress: longPressSelect || voiceMenu
+                                onLongPress: longPressSelect
                                     ? null
                                     : () {
                                         HapticFeedback.heavyImpact();
@@ -681,6 +661,26 @@ class Message extends StatelessWidget {
                                             child: Row(
                                               mainAxisSize: .min,
                                               children: [
+                                                if (VoiceTranscription.supports(
+                                                  displayEvent,
+                                                ))
+                                                  IconButton(
+                                                    icon: const Icon(
+                                                      Icons.subtitles_outlined,
+                                                    ),
+                                                    tooltip: L10n.of(
+                                                      context,
+                                                    ).transcribeVoiceMessage,
+                                                    onPressed: () async {
+                                                      onSelect(event);
+                                                      await VoiceTranscription
+                                                          .instance
+                                                          .transcribeWithFeedback(
+                                                            context,
+                                                            displayEvent,
+                                                          );
+                                                    },
+                                                  ),
                                                 ...AppConfig.defaultReactions.map(
                                                   (emoji) => IconButton(
                                                     padding: EdgeInsets.zero,

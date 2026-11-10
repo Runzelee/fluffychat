@@ -13,8 +13,6 @@ import 'package:synchronized/synchronized.dart';
 
 typedef VoiceTranscript = ({String text, bool expanded});
 
-enum _VoiceMenuAction { transcribe, download, select }
-
 class VoiceTranscription {
   static final instance = VoiceTranscription();
   static const _storage = FlutterSecureStorage();
@@ -113,55 +111,21 @@ class VoiceTranscription {
     await write(key, (text: text, expanded: true));
   }
 
-  Future<void> showMenuFor(
-    BuildContext context,
-    Event event,
-    Offset position, {
-    required VoidCallback select,
-    required VoidCallback download,
-  }) async {
-    final overlay =
-        Navigator.of(context).overlay!.context.findRenderObject()! as RenderBox;
-    final anchor = overlay.globalToLocal(position);
-    final l10n = L10n.of(context);
-    final action = await showMenu<_VoiceMenuAction>(
-      context: context,
-      position: RelativeRect.fromSize(anchor & Size.zero, overlay.size),
-      items: [
-        PopupMenuItem(
-          value: _VoiceMenuAction.transcribe,
-          child: Text(l10n.transcribeVoiceMessage),
-        ),
-        PopupMenuItem(
-          value: _VoiceMenuAction.download,
-          child: Text(l10n.downloadFile),
-        ),
-        PopupMenuItem(value: _VoiceMenuAction.select, child: Text(l10n.select)),
-      ],
-    );
-    if (!context.mounted) return;
-    switch (action) {
-      case _VoiceMenuAction.transcribe:
-        try {
-          await transcribe(event);
-        } catch (error) {
-          if (!context.mounted) return;
-          final message = switch (error) {
-            PlatformException(code: 'voice_too_long') =>
-              l10n.voiceTranscriptTooLong,
-            PlatformException(code: 'voice_empty') => l10n.voiceTranscriptEmpty,
-            _ => l10n.voiceTranscriptFailed,
-          };
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(message)));
-        }
-      case _VoiceMenuAction.download:
-        download();
-      case _VoiceMenuAction.select:
-        select();
-      case null:
-        break;
+  Future<void> transcribeWithFeedback(BuildContext context, Event event) async {
+    try {
+      await transcribe(event);
+    } catch (error) {
+      if (!context.mounted) return;
+      final l10n = L10n.of(context);
+      final message = switch (error) {
+        PlatformException(code: 'voice_too_long') =>
+          l10n.voiceTranscriptTooLong,
+        PlatformException(code: 'voice_empty') => l10n.voiceTranscriptEmpty,
+        _ => l10n.voiceTranscriptFailed,
+      };
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
     }
   }
 }
