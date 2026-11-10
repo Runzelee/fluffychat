@@ -133,10 +133,12 @@ class VoiceTranscription {
 class VoiceTranscriptPanel extends StatefulWidget {
   final String transcriptKey;
   final Color color;
+  final Widget Function(Widget? toggle, Widget? transcript) builder;
 
   const VoiceTranscriptPanel({
     required this.transcriptKey,
     required this.color,
+    required this.builder,
     super.key,
   });
 
@@ -201,38 +203,59 @@ class _VoiceTranscriptPanelState extends State<VoiceTranscriptPanel> {
     final l10n = L10n.of(context);
     final transcript = _transcript;
     final busy = _service.isRunning(widget.transcriptKey);
-    if (transcript == null && !busy) return const SizedBox.shrink();
-
-    return Padding(
-      padding: const EdgeInsets.only(top: 8),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Divider(height: 1, color: widget.color.withValues(alpha: 0.25)),
-          if (transcript == null)
-            Padding(
-              padding: const EdgeInsets.only(top: 12),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SizedBox.square(
-                    dimension: 14,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: widget.color,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    l10n.voiceTranscribing,
-                    style: TextStyle(color: widget.color),
-                  ),
-                ],
+    final toggle = transcript == null
+        ? null
+        : SizedBox(
+            width: 32,
+            height: 36,
+            child: IconButton(
+              padding: EdgeInsets.zero,
+              iconSize: 20,
+              color: widget.color,
+              tooltip: transcript.expanded
+                  ? l10n.voiceTranscriptCollapse
+                  : l10n.voiceTranscriptExpand,
+              onPressed: _saving || busy ? null : () => _toggle(transcript),
+              icon: Icon(
+                transcript.expanded ? Icons.expand_less : Icons.expand_more,
               ),
-            )
-          else ...[
-            if (transcript.expanded)
+            ),
+          );
+    if (!(transcript?.expanded ?? busy)) {
+      return widget.builder(toggle, null);
+    }
+
+    return widget.builder(
+      toggle,
+      Padding(
+        padding: const EdgeInsets.only(top: 8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Divider(height: 1, color: widget.color.withValues(alpha: 0.25)),
+            if (transcript == null)
+              Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox.square(
+                      dimension: 14,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: widget.color,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      l10n.voiceTranscribing,
+                      style: TextStyle(color: widget.color),
+                    ),
+                  ],
+                ),
+              )
+            else
               Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: SelectableText(
@@ -240,20 +263,8 @@ class _VoiceTranscriptPanelState extends State<VoiceTranscriptPanel> {
                   style: TextStyle(color: widget.color),
                 ),
               ),
-            TextButton.icon(
-              style: TextButton.styleFrom(foregroundColor: widget.color),
-              onPressed: _saving || busy ? null : () => _toggle(transcript),
-              icon: Icon(
-                transcript.expanded ? Icons.expand_less : Icons.expand_more,
-              ),
-              label: Text(
-                transcript.expanded
-                    ? l10n.voiceTranscriptCollapse
-                    : l10n.voiceTranscriptExpand,
-              ),
-            ),
           ],
-        ],
+        ),
       ),
     );
   }

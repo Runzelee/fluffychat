@@ -341,7 +341,7 @@ class AudioPlayerState extends State<AudioPlayerWidget> {
             final statusText = audioPlayer == null
                 ? _durationString ?? '00:00'
                 : audioPlayer.position.minuteSecondString;
-            return Padding(
+            Widget buildBubble(Widget? toggle, Widget? transcript) => Padding(
               padding: const EdgeInsets.all(12.0),
               child: Column(
                 mainAxisSize: .min,
@@ -501,15 +501,11 @@ class AudioPlayerState extends State<AudioPlayerWidget> {
                               : CrossFadeState.showSecond,
                           duration: FluffyThemes.animationDuration,
                         ),
+                        ?toggle,
                       ],
                     ),
                   ),
-                  if (transcriptKey != null)
-                    VoiceTranscriptPanel(
-                      key: ValueKey(transcriptKey),
-                      transcriptKey: transcriptKey,
-                      color: widget.color,
-                    ),
+                  ?transcript,
                   if (fileDescription != null) ...[
                     const SizedBox(height: 8),
                     Padding(
@@ -541,6 +537,14 @@ class AudioPlayerState extends State<AudioPlayerWidget> {
                 ],
               ),
             );
+            return transcriptKey == null
+                ? buildBubble(null, null)
+                : VoiceTranscriptPanel(
+                    key: ValueKey(transcriptKey),
+                    transcriptKey: transcriptKey,
+                    color: widget.color,
+                    builder: buildBubble,
+                  );
           },
         );
       },
