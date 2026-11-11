@@ -7,10 +7,12 @@ import 'dart:math';
 
 import 'package:fluffychat/config/app_config.dart';
 import 'package:fluffychat/config/setting_keys.dart';
+import 'package:fluffychat/l10n/l10n.dart';
 import 'package:fluffychat/utils/file_description.dart';
 import 'package:fluffychat/utils/matrix_sdk_extensions/event_extension.dart';
 import 'package:fluffychat/utils/platform_infos.dart';
 import 'package:fluffychat/utils/url_launcher.dart';
+import 'package:fluffychat/utils/video_attachment_cache.dart';
 import 'package:fluffychat/widgets/blur_hash.dart';
 import 'package:fluffychat/widgets/mxc_image.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
@@ -128,6 +130,12 @@ class EventVideoPlayer extends StatelessWidget {
                           ),
                         ),
                       ),
+                    if (supportsVideoPlayer)
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: _VideoTransferIndicator(event),
+                      ),
                   ],
                 ),
               ),
@@ -158,6 +166,45 @@ class EventVideoPlayer extends StatelessWidget {
             ),
           ),
       ],
+    );
+  }
+}
+
+class _VideoTransferIndicator extends StatelessWidget {
+  final Event event;
+
+  const _VideoTransferIndicator(this.event);
+
+  @override
+  Widget build(BuildContext context) {
+    final cache = VideoAttachmentCache.instance;
+    final key = VideoAttachmentCache.keyFor(event);
+    return ListenableBuilder(
+      listenable: cache,
+      builder: (context, _) {
+        if (!cache.isTransferring(key)) return const SizedBox.shrink();
+        return IgnorePointer(
+          child: DecoratedBox(
+            decoration: const BoxDecoration(
+              color: Colors.black54,
+              shape: BoxShape.circle,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(5),
+              child: SizedBox.square(
+                dimension: 14,
+                child: CircularProgressIndicator(
+                  value: cache.progressOf(key),
+                  strokeWidth: 2,
+                  color: Colors.white,
+                  backgroundColor: Colors.white38,
+                  semanticsLabel: L10n.of(context).downloadFile,
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

@@ -6,17 +6,14 @@
 import 'dart:io';
 
 import 'package:chewie/chewie.dart';
-import 'package:fluffychat/utils/localized_exception_extension.dart';
-import 'package:fluffychat/utils/matrix_sdk_extensions/event_extension.dart';
-import 'package:fluffychat/utils/platform_infos.dart';
+import 'package:fluffychat/l10n/l10n.dart';
+import 'package:fluffychat/utils/video_attachment_cache.dart';
 import 'package:fluffychat/widgets/blur_hash.dart';
 import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:matrix/matrix.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:video_player/video_player.dart';
 
-import '../../../utils/error_reporter.dart';
 import '../../widgets/mxc_image.dart';
 
 class EventVideoPlayer extends StatefulWidget {
@@ -31,80 +28,38 @@ class EventVideoPlayer extends StatefulWidget {
 class EventVideoPlayerState extends State<EventVideoPlayer> {
   ChewieController? _chewieController;
   VideoPlayerController? _videoPlayerController;
+  final _cache = VideoAttachmentCache.instance;
+  late final _cacheKey = VideoAttachmentCache.keyFor(widget.event);
+  late final VoidCallback _releaseCache;
+  bool _failed = false;
 
-  double? _downloadProgress;
-
-  // The video_player package only doesn't support Windows and Linux.
-  final _supportsVideoPlayer =
-      !PlatformInfos.isWindows && !PlatformInfos.isLinux;
-
-  Future<void> _downloadAction() async {
-    if (!_supportsVideoPlayer) {
-      widget.event.saveFile(context);
-      return;
-    }
-
+  Future<void> _play() async {
+    if (_failed) setState(() => _failed = false);
     try {
-      final fileSize = widget.event.content
-          .tryGetMap<String, Object?>('info')
-          ?.tryGet<int>('size');
-      final videoFile = await widget.event.downloadAndDecryptAttachment(
-        onDownloadProgress: fileSize == null
-            ? null
-            : (progress) {
-                final progressPercentage = progress / fileSize;
-                setState(() {
-                  _downloadProgress = progressPercentage < 1
-                      ? progressPercentage
-                      : null;
-                });
-              },
-      );
-
-      // Dispose the controllers if we already have them.
-      _disposeControllers();
-      late VideoPlayerController videoPlayerController;
-
-      // Create the VideoPlayerController from the contents of videoFile.
-      if (kIsWeb) {
-        videoPlayerController = VideoPlayerController.networkUrl(
-          Uri.dataFromBytes(videoFile.bytes, mimeType: videoFile.mimeType),
-        );
-      } else {
-        final tempDir = await getTemporaryDirectory();
-        final fileNameStr =
-            widget.event.attachmentMxcUrl?.pathSegments.last ??
-            widget.event.body;
-        final fileName = Uri.encodeComponent(fileNameStr);
-        final file = File('${tempDir.path}/${fileName}_${videoFile.name}');
-        if (await file.exists() == false) {
-          await file.writeAsBytes(videoFile.bytes);
-        }
-        videoPlayerController = VideoPlayerController.file(file);
-      }
+      final source = await _cache.load(widget.event);
+      if (!mounted) return;
+      final videoPlayerController = kIsWeb
+          ? VideoPlayerController.networkUrl(source)
+          : VideoPlayerController.file(File.fromUri(source));
       _videoPlayerController = videoPlayerController;
 
       await videoPlayerController.initialize();
+      if (!mounted) return;
 
-      // Create a ChewieController on top.
       setState(() {
         _chewieController = ChewieController(
           videoPlayerController: videoPlayerController,
           showControlsOnInitialize: false,
           autoPlay: true,
-          autoInitialize: true,
           looping: true,
-          aspectRatio: _videoPlayerController?.value.aspectRatio,
+          aspectRatio: videoPlayerController.value.aspectRatio,
         );
       });
-    } on IOException catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(e.toLocalizedString(context))));
     } catch (e, s) {
+      Logs().w('Unable to play video', e, s);
       if (!mounted) return;
-      ErrorReporter(context, 'Unable to play video').onErrorCallback(e, s);
+      _disposeControllers();
+      setState(() => _failed = true);
     }
   }
 
@@ -118,14 +73,16 @@ class EventVideoPlayerState extends State<EventVideoPlayer> {
   @override
   void dispose() {
     _disposeControllers();
+    _releaseCache();
     super.dispose();
   }
 
   @override
   void initState() {
     super.initState();
+    _releaseCache = _cache.retain(_cacheKey);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _downloadAction();
+      if (mounted) _play();
     });
   }
 
@@ -181,9 +138,19 @@ class EventVideoPlayerState extends State<EventVideoPlayer> {
                 ),
               ),
               Center(
-                child: CircularProgressIndicator.adaptive(
-                  value: _downloadProgress,
-                ),
+                child: _failed
+                    ? FilledButton.icon(
+                        onPressed: _play,
+                        icon: const Icon(Icons.refresh),
+                        label: Text(L10n.of(context).tryAgain),
+                      )
+                    : ListenableBuilder(
+                        listenable: _cache,
+                        builder: (context, _) =>
+                            CircularProgressIndicator.adaptive(
+                              value: _cache.progressOf(_cacheKey),
+                            ),
+                      ),
               ),
             ],
           );

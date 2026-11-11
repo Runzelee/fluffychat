@@ -97,7 +97,10 @@ class ImageViewerView extends StatelessWidget {
                               child: GestureDetector(
                                 // Ignore taps to not go back here:
                                 onTap: () {},
-                                child: EventVideoPlayer(event),
+                                child: EventVideoPlayer(
+                                  event,
+                                  key: ValueKey(event.eventId),
+                                ),
                               ),
                             ),
                           );
