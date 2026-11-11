@@ -115,6 +115,11 @@ void main() {
       return video;
     });
 
+    client.accessToken = null;
+    await expectLater(cache.load(event), throwsStateError);
+    expect(attempts, 0);
+    client.accessToken = 'test';
+
     await expectLater(cache.load(event), throwsA(isA<SocketException>()));
     expect(cache.isTransferring(VideoAttachmentCache.keyFor(event)), isFalse);
     expect(await File.fromUri(await cache.load(event)).readAsBytes(), bytes);

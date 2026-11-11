@@ -75,7 +75,10 @@ class VideoAttachmentCache extends ChangeNotifier {
 
   Future<Uri> load(Event event) {
     final key = keyFor(event);
-    return _pending.putIfAbsent(key, () => _load(event, key));
+    return _pending.putIfAbsent(
+      key,
+      () => Future<Uri>.microtask(() => _load(event, key)),
+    );
   }
 
   Future<Directory> _cacheDirectory() async => Directory(

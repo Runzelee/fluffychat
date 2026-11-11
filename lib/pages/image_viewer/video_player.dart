@@ -140,7 +140,9 @@ class EventVideoPlayerState extends State<EventVideoPlayer> {
               Center(
                 child: _failed
                     ? FilledButton.icon(
-                        onPressed: _play,
+                        onPressed: () {
+                          if (_failed) _play();
+                        },
                         icon: const Icon(Icons.refresh),
                         label: Text(L10n.of(context).tryAgain),
                       )
